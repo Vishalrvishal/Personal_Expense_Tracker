@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Personal Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-5">
+        <h1 class="mb-4 text-center text-primary">💸 Personal Expense Tracker</h1>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% if over_limit %}
+        <div class="alert alert-danger text-center">
+            🚨 Alert: You have exceeded your spending limit!
+        </div>
+        {% endif %}
+
+        <div class="d-flex justify-content-between mb-4">
+            <h4>Total Expenses: ₹{{ total }}</h4>
+            <h4>Spending Limit: ₹{{ spending_limit }}</h4>
+        </div>
+
+        <div class="mb-3 d-flex gap-2">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal">➕ Add Expense</button>
+            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#limitModal">⚙️ Set Limit</button>
+            <form method="POST" action="/reset" onsubmit="return confirm('Are you sure you want to reset all data?')">
+                <button class="btn btn-danger">♻️ Reset All</button>
+            </form>
+        </div>
+
+        <table class="table table-striped table-hover border shadow">
+            <thead class="table-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Amount (₹)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for expense in expenses %}
+                <tr>
+                    <form method="POST" action="/edit/{{ expense.id }}">
+                        <td><input type="date" name="date" value="{{ expense.date }}" class="form-control" required></td>
+                        <td><input type="text" name="category" value="{{ expense.category }}" class="form-control" required></td>
+                        <td><input type="text" name="description" value="{{ expense.description }}" class="form-control" required></td>
+                        <td><input type="number" step="0.01" name="amount" value="{{ expense.amount }}" class="form-control" required></td>
+                        <td class="d-flex gap-1">
+                            <button type="submit" class="btn btn-primary btn-sm">💾 Save</button>
+                            <a href="/delete/{{ expense.id }}" class="btn btn-danger btn-sm" onclick="return confirm('Delete this expense?')">🗑️</a>
+                        </td>
+                    </form>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <form method="POST" action="/add" class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add New Expense</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+              <input type="date" name="date" class="form-control mb-2" required>
+              <input type="text" name="category" placeholder="Category" class="form-control mb-2" required>
+              <input type="text" name="description" placeholder="Description" class="form-control mb-2" required>
+              <input type="number" step="0.01" name="amount" placeholder="Amount" class="form-control mb-2" required>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Add Expense</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Set Limit Modal -->
+    <div class="modal fade" id="limitModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <form method="POST" action="/set_limit" class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Set Spending Limit</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+              <input type="number" step="0.01" name="limit" placeholder="₹ Limit" class="form-control mb-2" required>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-warning">Set Limit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
